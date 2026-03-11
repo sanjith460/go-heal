@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Go Heal"/>
+<meta name="theme-color" content="#1a7a4a"/>
+<title>Go Heal — Your Daily Health Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --green:#1a7a4a;
+    --green-light:#2da162;
+    --green-pale:#e8f5ee;
+    --green-mid:#c1e8d2;
+    --accent:#f0a500;
+    --red:#e74c3c;
+    --blue:#3498db;
+    --white:#ffffff;
+    --off-white:#f7faf8;
+    --text:#1a2e24;
+    --text-muted:#5d8070;
+    --card-shadow:0 4px 20px rgba(26,122,74,0.12);
+    --radius:18px;
+    --radius-sm:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--off-white);color:var(--text);overflow:hidden;}
+  
+  /* SPLASH SCREEN */
+  #splash{
+    position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:999;transition:opacity 0.6s ease;
+  }
+  #splash .logo-wrap{animation:splashPop 0.7s cubic-bezier(.34,1.56,.64,1) 0.3s both;}
+  #splash .app-icon{width:90px;height:90px;background:white;border-radius:26px;
+    display:flex;align-items:center;justify-content:center;font-size:44px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+  #splash h1{color:white;font-size:32px;font-weight:900;margin-top:16px;letter-spacing:-0.5px;}
+  #splash p{color:rgba(255,255,255,0.7);font-size:13px;margin-top:4px;}
+  #splash .dev-tag{position:absolute;bottom:30px;color:rgba(255,255,255,0.5);font-size:11px;}
+  @keyframes splashPop{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+
+  /* APP SHELL */
+  #app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+  
+  /* TOP BAR */
+  .topbar{
+    background:var(--green);color:white;padding:12px 20px 14px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 12px rgba(26,122,74,0.3);flex-shrink:0;
+    padding-top:max(12px, env(safe-area-inset-top));
+  }
+  .topbar-left{display:flex;align-items:center;gap:10px;}
+  .topbar-icon{width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .topbar h2{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+  .topbar-date{font-size:11px;opacity:0.75;margin-top:1px;}
+  .topbar-right{display:flex;gap:8px;}
+  .icon-btn{width:36px;height:36px;background:rgba(255,255,255,0.15);border:none;border-radius:10px;
+    color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+  .icon-btn:active{background:rgba(255,255,255,0.3);}
+
+  /* PAGES */
+  .pages{flex:1;overflow:hidden;position:relative;}
+  .page{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 80px;
+    transition:transform 0.35s cubic-bezier(.4,0,.2,1),opacity 0.35s;
+    -webkit-overflow-scrolling:touch;}
+  .page.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+  .page.slide-left{transform:translateX(-100%);opacity:0;pointer-events:none;}
+
+  /* BOTTOM NAV */
+  .bottom-nav{
+    display:flex;background:white;border-top:1px solid #e0ede6;
+    box-shadow:0 -4px 20px rgba(26,122,74,0.1);flex-shrink:0;
+    padding-bottom:max(8px,env(safe-area-inset-bottom));
+  }
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 6px;
+    cursor:pointer;transition:all 0.2s;border:none;background:none;gap:3px;}
+  .nav-item .nav-icon{font-size:22px;transition:transform 0.2s;}
+  .nav-item .nav-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.3px;}
+  .nav-item.active .nav-icon{transform:scale(1.15);}
+  .nav-item.active .nav-label{color:var(--green);}
+  .nav-item:active .nav-icon{transform:scale(0.9);}
+
+  /* CARDS */
+  .card{background:white;border-radius:var(--radius);padding:16px;box-shadow:var(--card-shadow);margin-bottom:12px;}
+  .card-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;}
+  .card-value{font-size:36px;font-weight:900;color:var(--green);line-height:1;}
+  .card-unit{font-size:14px;font-weight:600;color:var(--text-muted);margin-left:4px;}
+
+  /* SECTION HEADER */
+  .sec-header{display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;}
+  .sec-title{font-size:17px;font-weight:800;color:var(--text);}
+  .sec-action{font-size:12px;font-weight:700;color:var(--green);cursor:pointer;padding:4px 8px;
+    background:var(--green-pale);border-radius:8px;}
+
+  /* DASHBOARD GRID */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .stat-card{background:white;border-radius:var(--radius);padding:14px;box-shadow:var(--card-shadow);
+    display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:-10px;right:-10px;width:60px;height:60px;
+    border-radius:50%;background:var(--green-pale);opacity:0.7;}
+  .stat-card.green{background:linear-gradient(135deg,var(--green),var(--green-light));}
+  .stat-card.green .stat-label,.stat-card.green .stat-val,.stat-card.green .stat-icon{color:white!important;}
+  .stat-card.green::before{background:rgba(255,255,255,0.15);}
+  .stat-icon{font-size:20px;position:relative;z-index:1;}
+  .stat-val{font-size:26px;font-weight:900;color:var(--text);position:relative;z-index:1;}
+  .stat-label{font-size:11px;font-weight:700;color:var(--text-muted);position:relative;z-index:1;}
+
+  /* WATER TRACKER */
+  .water-bar-wrap{background:var(--green-pale);border-radius:99px;height:14px;overflow:hidden;margin:10px 0 6px;}
+  .water-bar{height:100%;background:linear-gradient(90deg,var(--blue),#5db8f5);border-radius:99px;transition:width 0.5s ease;}
+  .water-btns{display:flex;gap:8px;margin-top:10px;}
+  .water-btn{flex:1;background:var(--green-pale);border:none;border-radius:10px;padding:10px;
+    font-size:13px;font-weight:700;color:var(--green);cursor:pointer;transition:all 0.2s;}
+  .water-btn:active{background:var(--green-mid);transform:scale(0.96);}
+  .water-btn.remove{background:#fff0f0;color:var(--red);}
+  .water-glasses{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .glass{width:32px;height:32px;border-radius:8px;border:2px solid var(--green-mid);
+    display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.3s;}
+  .glass.full{background:var(--blue);border-color:var(--blue);}
+
+  /* SCHEDULE */
+  .schedule-list{display:flex;flex-direction:column;gap:8px;}
+  .schedule-item{background:white;border-radius:var(--radius-sm);padding:12px 14px;
+    box-shadow:var(--card-shadow);display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .schedule-item.done{opacity:0.6;}
+  .sch-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--green-mid);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+  .schedule-item.done .sch-check{background:var(--green);border-color:var(--green);}
+  .sch-info{flex:1;}
+  .sch-name{font-size:14px;font-weight:700;color:var(--text);}
+  .sch-time{font-size:12px;color:var(--text-muted);}
+  .sch-tag{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;background:var(--green-pale);color:var(--green);}
+
+  /* WEIGHT CHART */
+  .weight-log{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}
+  .weight-entry{display:flex;align-items:center;justify-content:space-between;
+    background:var(--off-white);padding:10px 12px;border-radius:var(--radius-sm);}
+  .weight-val{font-size:18px;font-weight:900;color:var(--green);}
+  .weight-date{font-size:11px;color:var(--text-muted);}
+  .weight-del{width:28px;height:28px;background:#fff0f0;border:none;border-radius:7px;
+    color:var(--red);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  
+  /* MINI CHART */
+  .mini-chart{width:100%;height:80px;margin:8px 0;}
+  
+  /* INPUT SECTION */
+  .input-row{display:flex;gap:8px;margin-top:10px;}
+  .gh-input{flex:1;background:var(--off-white);border:2px solid var(--green-mid);border-radius:var(--radius-sm);
+    padding:10px 14px;font-size:15px;font-family:'Nunito',sans-serif;font-weight:700;
+    color:var(--text);outline:none;transition:border-color 0.2s;}
+  .gh-input:focus{border-color:var(--green);}
+  .gh-btn{background:var(--green);border:none;border-radius:var(--radius-sm);padding:10px 16px;
+    color:white;font-size:14px;font-weight:800;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+  .gh-btn:active{background:var(--green-light);transform:scale(0.96);}
+  .gh-btn.outline{background:var(--green-pale);color:var(--green);}
+
+  /* HEALTH VITALS */
+  .vitals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .vital-card{background:white;border-radius:var(--radius);padding:14px;box-shadow:var(--card-shadow);text-align:center;}
+  .vital-icon{font-size:28px;margin-bottom:6px;}
+  .vital-name{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;}
+  .vital-value{font-size:22px;font-weight:900;color:var(--text);margin:4px 0;}
+  .vital-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;}
+  .vital-status.normal{background:#e8f5ee;color:var(--green);}
+  .vital-status.warn{background:#fff3cd;color:#856404;}
+  .vital-status.danger{background:#fff0f0;color:var(--red);}
+  .vital-trend{font-size:11px;color:var(--text-muted);margin-top:4px;}
+
+  /* BMI */
+  .bmi-scale{position:relative;height:12px;border-radius:99px;
+    background:linear-gradient(90deg,#3498db 0%,#2da162 25%,#f0a500 60%,#e74c3c 100%);
+    margin:12px 0 6px;}
+  .bmi-needle{position:absolute;top:-4px;width:3px;height:20px;background:var(--text);
+    border-radius:99px;transform:translateX(-50%);transition:left 0.5s ease;}
+  .bmi-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-weight:700;}
+
+  /* PROFILE */
+  .profile-section{text-align:center;padding:20px 0;}
+  .avatar{width:80px;height:80px;background:var(--green);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;
+    box-shadow:0 4px 16px rgba(26,122,74,0.3);}
+  .profile-name{font-size:22px;font-weight:900;color:var(--text);}
+  .profile-sub{font-size:13px;color:var(--text-muted);margin-top:2px;}
+
+  .settings-item{background:white;border-radius:var(--radius-sm);padding:14px 16px;
+    box-shadow:var(--card-shadow);display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;}
+  .settings-item:active{opacity:0.7;}
+  .settings-icon{width:36px;height:36px;border-radius:10px;background:var(--green-pale);
+    display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .settings-label{font-size:14px;font-weight:700;color:var(--text);}
+  .settings-sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
+  .settings-arrow{color:var(--text-muted);margin-left:auto;}
+
+  /* MODAL */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;
+    display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+  .modal-bg.open{opacity:1;pointer-events:all;}
+  .modal{background:white;border-radius:24px 24px 0 0;padding:24px;width:100%;
+    transform:translateY(100%);transition:transform 0.35s cubic-bezier(.4,0,.2,1);}
+  .modal-bg.open .modal{transform:translateY(0);}
+  .modal h3{font-size:18px;font-weight:900;color:var(--text);margin-bottom:16px;}
+  .modal-close{position:absolute;top:24px;right:24px;width:32px;height:32px;
+    background:var(--off-white);border:none;border-radius:50%;font-size:16px;cursor:pointer;}
+
+  /* GREETING */
+  .greeting{font-size:22px;font-weight:900;color:var(--text);line-height:1.3;}
+  .greeting span{color:var(--green);}
+  .greeting-sub{font-size:13px;color:var(--text-muted);margin-top:4px;margin-bottom:16px;}
+
+  /* PROGRESS RING */
+  .ring-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .ring-label{font-size:11px;font-weight:700;color:var(--text-muted);text-align:center;}
+
+  /* TOAST */
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);
+    background:var(--text);color:white;padding:10px 20px;border-radius:99px;
+    font-size:13px;font-weight:700;z-index:200;opacity:0;pointer-events:none;
+    transition:all 0.3s;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--green-mid);border-radius:99px;}
+
+  /* ANIMATIONS */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp 0.4s ease both;}
+  .fade-up-1{animation-delay:0.05s}
+  .fade-up-2{animation-delay:0.1s}
+  .fade-up-3{animation-delay:0.15s}
+  .fade-up-4{animation-delay:0.2s}
+  .fade-up-5{animation-delay:0.25s}
+
+  /* STREAK BADGE */
+  .streak-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#f0a500,#f5c842);
+    padding:5px 12px;border-radius:99px;font-size:12px;font-weight:800;color:white;
+    box-shadow:0 2px 8px rgba(240,165,0,0.3);}
+
+  /* QUICK ACTIONS */
+  .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .quick-btn{background:white;border-radius:var(--radius-sm);padding:12px 4px;
+    display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:var(--card-shadow);
+    cursor:pointer;border:none;transition:all 0.2s;}
+  .quick-btn:active{transform:scale(0.94);background:var(--green-pale);}
+  .quick-btn .q-icon{font-size:22px;}
+  .quick-btn .q-label{font-size:10px;font-weight:700;color:var(--text-muted);}
+
+  select.gh-input{appearance:none;-webkit-appearance:none;}
+  
+  .divider{height:1px;background:var(--green-pale);margin:12px 0;}
+  
+  .insight-card{background:linear-gradient(135deg,var(--green),#25956b);border-radius:var(--radius);
+    padding:16px;color:white;margin-bottom:12px;box-shadow:0 4px 20px rgba(26,122,74,0.3);}
+  .insight-card h4{font-size:14px;font-weight:800;margin-bottom:4px;opacity:0.85;}
+  .insight-card p{font-size:14px;font-weight:700;line-height:1.4;}
+
+  /* DEV FOOTER */
+  .dev-footer{text-align:center;padding:16px 0 4px;color:var(--text-muted);font-size:10px;font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="logo-wrap">
+    <div class="app-icon">🌿</div>
+    <h1>Go Heal</h1>
+    <p>Your Daily Health Companion</p>
+  </div>
+  <div class="dev-tag">Developed by S. Sanjith · v1.0.0</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">🌿</div>
+      <div>
+        <div style="font-size:20px;font-weight:900;letter-spacing:-0.3px;">Go Heal</div>
+        <div class="topbar-date" id="topbar-date"></div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="openProfileModal()">👤</button>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- HOME PAGE -->
+    <div class="page" id="page-home">
+      <div class="greeting fade-up">Good <span id="greeting-time">morning</span>, <span id="user-greeting-name">Friend</span>! 👋</div>
+      <div class="greeting-sub fade-up">Let's make today a healthy day.</div>
+
+      <!-- Streak & Insight -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;" class="fade-up fade-up-1">
+        <div class="streak-badge">🔥 <span id="streak-count">0</span> Day Streak</div>
+      </div>
+
+      <div class="insight-card fade-up fade-up-1" id="insight-card">
+        <h4>💡 Daily Insight</h4>
+        <p id="insight-text">Loading your daily health tip...</p>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="sec-header fade-up fade-up-2">
+        <div class="sec-title">Today's Stats</div>
+        <div class="sec-action" onclick="switchPage('vitals')">View All</div>
+      </div>
+      <div class="stat-grid fade-up fade-up-2">
+        <div class="stat-card green">
+          <div class="stat-icon">💧</div>
+          <div class="stat-val" id="home-water">0</div>
+          <div class="stat-label">Glasses Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚖️</div>
+          <div class="stat-val" id="home-weight">--</div>
+          <div class="stat-label">Weight (kg)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❤️</div>
+          <div class="stat-val" id="home-heart">--</div>
+          <div class="stat-label">Heart Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🩺</div>
+          <div class="stat-val" id="home-bp">--</div>
+          <div class="stat-label">Blood Pressure</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="sec-header fade-up fade-up-3">
+        <div class="sec-title">Quick Log</div>
+      </div>
+      <div class="quick-actions fade-up fade-up-3">
+        <button class="quick-btn" onclick="addWaterGlass();showToast('💧 Water logged!')">
+          <span class="q-icon">💧</span><span class="q-label">Water</span>
+        </button>
+        <button class="quick-btn" onclick="switchPage('weight')">
+          <span class="q-icon">⚖️</span><span class="q-label">Weight</span>
+        </button>
+        <button class="quick-btn" onclick="switchPage('schedule')">
+          <span class="q-icon">📋</span><span class="q-label">Schedule</span>
+        </button>
+        <button class="quick-btn" onclick="switchPage('vitals')">
+          <span class="q-icon">🩺</span><span class="q-label">Vitals</span>
+        </button>
+      </div>
+
+      <!-- Today's Schedule Preview -->
+      <div class="sec-header fade-up fade-up-4">
+        <div class="sec-title">Today's Schedule</div>
+        <div class="sec-action" onclick="switchPage('schedule')">See All</div>
+      </div>
+      <div id="home-schedule-preview" class="fade-up fade-up-4"></div>
+
+      <!-- Water Progress -->
+      <div class="card fade-up fade-up-5">
+        <div class="card-title">💧 Water Intake</div>
+        <div style="display:flex;align-items:baseline;gap:4px;">
+          <span class="card-value" id="home-water-l">0</span>
+          <span class="card-unit">/ <span id="home-water-goal">8</span> glasses</span>
+        </div>
+        <div class="water-bar-wrap">
+          <div class="water-bar" id="home-water-bar" style="width:0%"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="water-btn" onclick="addWaterGlass();showToast('💧 Water logged!')">+ 1 Glass</button>
+          <button class="water-btn remove" onclick="removeWaterGlass()">- 1 Glass</button>
+        </div>
+      </div>
+
+      <div class="dev-footer">Go Heal v1.0 · Developed by S. Sanjith</div>
+    </div>
+
+    <!-- WATER PAGE -->
+    <div class="page hidden" id="page-water">
+      <div class="sec-title fade-up" style="margin-bottom:14px;">💧 Water Tracker</div>
+      
+      <div class="card fade-up fade-up-1">
+        <div class="card-title">Today's Intake</div>
+        <div style="display:flex;align-items:baseline;gap:4px;">
+          <span class="card-value" id="water-count">0</span>
+          <span class="card-unit" id="water-goal-label">/ 8 glasses</span>
+        </div>
+        <div class="water-bar-wrap" style="height:18px;">
+          <div class="water-bar" id="water-main-bar" style="width:0%"></div>
+        </div>
+        <div id="water-pct" style="font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:700;"></div>
+        
+        <div class="water-glasses" id="water-glasses-row"></div>
+
+        <div class="water-btns" style="margin-top:14px;">
+          <button class="water-btn" onclick="addWaterGlass();showToast('💧 Glass added!')">+ 250ml Glass</button>
+          <button class="water-btn remove" onclick="removeWaterGlass()">↩ Remove</button>
+        </div>
+      </div>
+
+      <div class="card fade-up fade-up-2">
+        <div class="card-title">Set Daily Goal</div>
+        <div class="input-row">
+          <input type="number" class="gh-input" id="water-goal-input" placeholder="8" min="1" max="20"/>
+          <button class="gh-btn" onclick="setWaterGoal()">Set Goal</button>
+        </div>
+      </div>
+
+      <div class="card fade-up fade-up-3">
+        <div class="card-title">💡 Hydration Tips</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:13px;color:var(--text-muted);">🕖 Drink a glass upon waking up</div>
+          <div style="font-size:13px;color:var(--text-muted);">🍽️ Drink before every meal</div>
+          <div style="font-size:13px;color:var(--text-muted);">🏃 Extra glass after exercise</div>
+          <div style="font-size:13px;color:var(--text-muted);">☀️ Hot days need extra hydration</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEIGHT PAGE -->
+    <div class="page hidden" id="page-weight">
+      <div class="sec-title fade-up" style="margin-bottom:14px;">⚖️ Weight Tracker</div>
+
+      <div class="card fade-up fade-up-1">
+        <div class="card-title">Log Today's Weight</div>
+        <div class="input-row">
+          <input type="number" class="gh-input" id="weight-input" placeholder="e.g. 70.5" step="0.1"/>
+          <select class="gh-input" id="weight-unit" style="max-width:80px;">
+            <option>kg</option>
+            <option>lbs</option>
+          </select>
+          <button class="gh-btn" onclick="logWeight()">Log</button>
+        </div>
+      </div>
+
+      <!-- BMI Card -->
+      <div class="card fade-up fade-up-2">
+        <div class="card-title">BMI Calculator</div>
+        <div class="input-row" style="margin-bottom:8px;">
+          <input type="number" class="gh-input" id="bmi-height" placeholder="Height (cm)" step="0.1"/>
+        </div>
+        <button class="gh-btn" style="width:100%;" onclick="calcBMI()">Calculate BMI</button>
+        <div id="bmi-result" style="margin-top:12px;display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:28px;font-weight:900;color:var(--green);" id="bmi-val">--</span>
+            <span class="vital-status" id="bmi-status">--</span>
+          </div>
+          <div class="bmi-scale">
+            <div class="bmi-needle" id="bmi-needle" style="left:0%"></div>
+          </div>
+          <div class="bmi-labels">
+            <span>Underweight</span><span>Normal</span><span>Overweight</span><span>Obese</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weight Log -->
+      <div class="card fade-up fade-up-3">
+        <div class="card-title">Weight History</div>
+        <canvas id="weight-chart" class="mini-chart"></canvas>
+        <div class="weight-log" id="weight-log-list"></div>
+        <div id="weight-empty" style="text-align:center;color:var(--text-muted);font-size:13px;padding:12px;display:none;">
+          No entries yet. Start logging your weight!
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE PAGE -->
+    <div class="page hidden" id="page-schedule">
+      <div class="sec-title fade-up" style="margin-bottom:4px;">📋 Daily Schedule</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;" class="fade-up">Tap to mark as done</div>
+
+      <!-- Add Task -->
+      <div class="card fade-up fade-up-1">
+        <div class="card-title">Add New Task</div>
+        <div class="input-row">
+          <input type="text" class="gh-input" id="sch-name" placeholder="Task name"/>
+        </div>
+        <div class="input-row" style="margin-top:6px;">
+          <input type="time" class="gh-input" id="sch-time"/>
+          <select class="gh-input" id="sch-cat" style="max-width:120px;">
+            <option value="💊">💊 Meds</option>
+            <option value="🏃">🏃 Exercise</option>
+            <option value="🥗">🥗 Meal</option>
+            <option value="💧">💧 Water</option>
+            <option value="😴">😴 Sleep</option>
+            <option value="🧘">🧘 Wellness</option>
+            <option value="🩺">🩺 Checkup</option>
+          </select>
+        </div>
+        <button class="gh-btn" style="width:100%;margin-top:8px;" onclick="addScheduleItem()">+ Add Task</button>
+      </div>
+
+      <!-- Progress -->
+      <div class="card fade-up fade-up-2">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="card-title" style="margin-bottom:2px;">Today's Progress</div>
+            <div style="font-size:22px;font-weight:900;color:var(--green);" id="sch-progress-text">0 / 0 done</div>
+          </div>
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="24" fill="none" stroke="#e0ede6" stroke-width="6"/>
+            <circle cx="30" cy="30" r="24" fill="none" stroke="var(--green)" stroke-width="6"
+              stroke-dasharray="150.8" id="sch-ring" stroke-dashoffset="150.8"
+              stroke-linecap="round" transform="rotate(-90 30 30)" style="transition:stroke-dashoffset 0.5s ease;"/>
+            <text x="30" y="35" text-anchor="middle" font-size="12" font-weight="800" fill="var(--green)" id="sch-ring-pct">0%</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="schedule-list fade-up fade-up-3" id="schedule-list"></div>
+      <div id="schedule-empty" style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px;display:none;">
+        No tasks yet. Add your first health task above!
+      </div>
+    </div>
+
+    <!-- VITALS PAGE -->
+    <div class="page hidden" id="page-vitals">
+      <div class="sec-title fade-up" style="margin-bottom:14px;">🩺 Health Vitals</div>
+
+      <div class="vitals-grid fade-up fade-up-1" id="vitals-grid">
+        <!-- Dynamically filled -->
+      </div>
+
+      <!-- Log Vitals -->
+      <div class="card fade-up fade-up-2" style="margin-top:12px;">
+        <div class="card-title">Log Vitals</div>
+        <div class="input-row" style="flex-wrap:wrap;gap:8px;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">❤️ Heart Rate (bpm)</div>
+            <input type="number" class="gh-input" id="v-heart" placeholder="72"/>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">🩸 Systolic BP (mmHg)</div>
+            <input type="number" class="gh-input" id="v-sys" placeholder="120"/>
+          </div>
+        </div>
+        <div class="input-row" style="flex-wrap:wrap;gap:8px;margin-top:8px;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">🩸 Diastolic BP (mmHg)</div>
+            <input type="number" class="gh-input" id="v-dia" placeholder="80"/>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">🌡️ Temperature (°C)</div>
+            <input type="number" class="gh-input" id="v-temp" placeholder="37.0" step="0.1"/>
+          </div>
+        </div>
+        <div class="input-row" style="flex-wrap:wrap;gap:8px;margin-top:8px;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">💨 SpO2 (%)</div>
+            <input type="number" class="gh-input" id="v-spo2" placeholder="98"/>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">😴 Sleep (hours)</div>
+            <input type="number" class="gh-input" id="v-sleep" placeholder="8" step="0.5"/>
+          </div>
+        </div>
+        <button class="gh-btn" style="width:100%;margin-top:12px;" onclick="logVitals()">💾 Save Vitals</button>
+      </div>
+
+      <!-- Mood -->
+      <div class="card fade-up fade-up-3">
+        <div class="card-title">😊 Mood Today</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:4px;">
+          <button class="quick-btn" style="flex:1;" onclick="setMood('😄','Great')" id="mood-great">
+            <span class="q-icon">😄</span><span class="q-label">Great</span>
+          </button>
+          <button class="quick-btn" style="flex:1;" onclick="setMood('😊','Good')" id="mood-good">
+            <span class="q-icon">😊</span><span class="q-label">Good</span>
+          </button>
+          <button class="quick-btn" style="flex:1;" onclick="setMood('😐','Okay')" id="mood-okay">
+            <span class="q-icon">😐</span><span class="q-label">Okay</span>
+          </button>
+          <button class="quick-btn" style="flex:1;" onclick="setMood('😔','Low')" id="mood-low">
+            <span class="q-icon">😔</span><span class="q-label">Low</span>
+          </button>
+        </div>
+        <div id="mood-text" style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:10px;font-weight:700;"></div>
+      </div>
+
+      <!-- Steps -->
+      <div class="card fade-up fade-up-4">
+        <div class="card-title">🚶 Steps Tracker</div>
+        <div class="input-row">
+          <input type="number" class="gh-input" id="v-steps" placeholder="Enter steps today"/>
+          <button class="gh-btn" onclick="logSteps()">Log</button>
+        </div>
+        <div id="steps-display" style="margin-top:10px;font-size:13px;color:var(--text-muted);font-weight:700;"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div class="page hidden" id="page-profile">
+      <div class="profile-section fade-up">
+        <div class="avatar" id="profile-avatar">👤</div>
+        <div class="profile-name" id="profile-name-display">Your Name</div>
+        <div class="profile-sub" id="profile-sub-display">Set up your profile</div>
+      </div>
+
+      <div class="card fade-up fade-up-1">
+        <div class="card-title">Personal Info</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Full Name</div>
+            <input type="text" class="gh-input" id="p-name" placeholder="Your full name" style="width:100%;"/>
+          </div>
+          <div class="input-row">
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Age</div>
+              <input type="number" class="gh-input" id="p-age" placeholder="Age"/>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Gender</div>
+              <select class="gh-input" id="p-gender">
+                <option value="">Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-row">
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Height (cm)</div>
+              <input type="number" class="gh-input" id="p-height" placeholder="170"/>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Blood Group</div>
+              <select class="gh-input" id="p-blood">
+                <option value="">Select</option>
+                <option>A+</option><option>A-</option>
+                <option>B+</option><option>B-</option>
+                <option>O+</option><option>O-</option>
+                <option>AB+</option><option>AB-</option>
+              </select>
+            </div>
+          </div>
+          <button class="gh-btn" style="width:100%;" onclick="saveProfile()">💾 Save Profile</button>
+        </div>
+      </div>
+
+      <div class="card fade-up fade-up-2">
+        <div class="card-title">📊 Health Summary</div>
+        <div id="health-summary" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div class="card fade-up fade-up-3">
+        <div class="card-title">⚙️ Settings</div>
+        <div class="settings-item" onclick="resetDay()">
+          <div class="settings-icon">🔄</div>
+          <div><div class="settings-label">Reset Today's Data</div><div class="settings-sub">Clear today's logs only</div></div>
+          <span class="settings-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="exportData()">
+          <div class="settings-icon">📤</div>
+          <div><div class="settings-label">Export Health Data</div><div class="settings-sub">Copy data to clipboard</div></div>
+          <span class="settings-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="if(confirm('Delete ALL data? This cannot be undone.'))clearAllData()">
+          <div class="settings-icon" style="background:#fff0f0;">🗑️</div>
+          <div><div class="settings-label" style="color:var(--red);">Clear All Data</div><div class="settings-sub">Permanently delete all records</div></div>
+          <span class="settings-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="dev-footer" style="padding-bottom:20px;">
+        <div>🌿 Go Heal — Your Daily Health Companion</div>
+        <div style="margin-top:4px;">Developed & Owned by S. Sanjith · v1.0.0</div>
+        <div style="margin-top:2px;font-size:9px;opacity:0.6;">All data stored locally on your device</div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="switchPage('home')">
+      <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" id="nav-water" onclick="switchPage('water')">
+      <span class="nav-icon">💧</span><span class="nav-label">Water</span>
+    </button>
+    <button class="nav-item" id="nav-weight" onclick="switchPage('weight')">
+      <span class="nav-icon">⚖️</span><span class="nav-label">Weight</span>
+    </button>
+    <button class="nav-item" id="nav-schedule" onclick="switchPage('schedule')">
+      <span class="nav-icon">📋</span><span class="nav-label">Schedule</span>
+    </button>
+    <button class="nav-item" id="nav-vitals" onclick="switchPage('vitals')">
+      <span class="nav-icon">🩺</span><span class="nav-label">Vitals</span>
+    </button>
+    <button class="nav-item" id="nav-profile" onclick="switchPage('profile')">
+      <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+    </button>
+  </div>
+</div><!-- /app -->
+
+<script>
+// ===== DATA STORAGE =====
+const STORAGE_KEY = 'goheal_data';
+let state = {
+  profile: { name:'', age:'', gender:'', height:'', blood:'' },
+  water: { glasses:0, goal:8, date:'' },
+  weightLog: [],
+  schedule: [],
+  vitals: { heart:'', sys:'', dia:'', temp:'', spo2:'', sleep:'', steps:'', mood:'', date:'' },
+  streak: { count:0, lastDate:'' },
+};
+
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function loadState(){
+  try{
+    const d = localStorage.getItem(STORAGE_KEY);
+    if(d){ const parsed = JSON.parse(d); state = {...state, ...parsed}; }
+  }catch(e){}
+}
+
+// Reset daily fields if new day
+function checkDayReset(){
+  const today = new Date().toDateString();
+  if(state.water.date !== today){ state.water.glasses = 0; state.water.date = today; }
+  if(state.vitals.date !== today){ 
+    state.vitals = {...state.vitals, heart:'', sys:'', dia:'', temp:'', spo2:'', sleep:'', steps:'', mood:'', date:today}; 
+  }
+  // Streak logic
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  if(state.streak.lastDate === yesterday){ state.streak.count++; state.streak.lastDate = today; }
+  else if(state.streak.lastDate !== today){ state.streak.count = 1; state.streak.lastDate = today; }
+  saveState();
+}
+
+// ===== UI STATE =====
+let currentPage = 'home';
+const pages = ['home','water','weight','schedule','vitals','profile'];
+
+function switchPage(p){
+  const prev = currentPage;
+  pages.forEach(id=>{
+    const el = document.getElementById('page-'+id);
+    const nav = document.getElementById('nav-'+id);
+    if(id === p){
+      el.classList.remove('hidden','slide-left');
+      nav && nav.classList.add('active');
+    } else {
+      el.classList.add(pages.indexOf(id) < pages.indexOf(p) ? 'slide-left' : 'hidden');
+      el.classList.remove(pages.indexOf(id) < pages.indexOf(p) ? 'hidden' : 'slide-left');
+      nav && nav.classList.remove('active');
+    }
+  });
+  currentPage = p;
+  refreshPage(p);
+}
+
+function refreshPage(p){
+  if(p==='home') renderHome();
+  if(p==='water') renderWater();
+  if(p==='weight') renderWeight();
+  if(p==='schedule') renderSchedule();
+  if(p==='vitals') renderVitals();
+  if(p==='profile') renderProfile();
+}
+
+// ===== TOAST =====
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ===== WATER =====
+function addWaterGlass(){ state.water.glasses = Math.min(state.water.glasses+1, state.water.goal*2); saveState(); refreshPage(currentPage); }
+function removeWaterGlass(){ state.water.glasses = Math.max(0, state.water.glasses-1); saveState(); refreshPage(currentPage); }
+function setWaterGoal(){
+  const v = parseInt(document.getElementById('water-goal-input').value);
+  if(v && v>0 && v<=30){ state.water.goal = v; saveState(); renderWater(); showToast('✅ Goal set to '+v+' glasses!'); }
+}
+
+function renderWater(){
+  const g = state.water.glasses, goal = state.water.goal, pct = Math.round((g/goal)*100);
+  document.getElementById('water-count').textContent = g;
+  document.getElementById('water-goal-label').textContent = '/ '+goal+' glasses';
+  document.getElementById('water-main-bar').style.width = Math.min(pct,100)+'%';
+  document.getElementById('water-pct').textContent = pct+'% of daily goal · '+(g*250)+'ml consumed';
+  document.getElementById('water-goal-input').value = goal;
+  const row = document.getElementById('water-glasses-row');
+  row.innerHTML = '';
+  for(let i=0;i<goal;i++){
+    const d = document.createElement('div');
+    d.className = 'glass' + (i<g?' full':'');
+    d.textContent = i<g ? '💧' : '🥛';
+    row.appendChild(d);
+  }
+}
+
+// ===== WEIGHT =====
+function logWeight(){
+  const v = parseFloat(document.getElementById('weight-input').value);
+  const u = document.getElementById('weight-unit').value;
+  if(!v || v<=0 || v>500){ showToast('⚠️ Enter a valid weight!'); return; }
+  const kg = u==='lbs' ? v/2.205 : v;
+  state.weightLog.unshift({ kg:parseFloat(kg.toFixed(1)), display:v, unit:u, date:new Date().toLocaleDateString() });
+  if(state.weightLog.length>30) state.weightLog.pop();
+  saveState(); renderWeight();
+  document.getElementById('weight-input').value='';
+  showToast('✅ Weight logged: '+v+' '+u);
+}
+function deleteWeight(i){ state.weightLog.splice(i,1); saveState(); renderWeight(); }
+function calcBMI(){
+  const h = parseFloat(document.getElementById('bmi-height').value);
+  const w = state.weightLog.length ? state.weightLog[0].kg : null;
+  if(!h||!w){ showToast('⚠️ Log a weight first, then enter height.'); return; }
+  const bmi = w / ((h/100)**2);
+  const r = document.getElementById('bmi-result');
+  r.style.display = 'block';
+  document.getElementById('bmi-val').textContent = bmi.toFixed(1);
+  const needle = document.getElementById('bmi-needle');
+  const status = document.getElementById('bmi-status');
+  let pct, cls, label;
+  if(bmi<18.5){ pct=Math.max(0,(bmi/18.5)*20); cls='warn'; label='Underweight'; }
+  else if(bmi<25){ pct=20+((bmi-18.5)/6.5)*30; cls='normal'; label='Normal'; }
+  else if(bmi<30){ pct=50+((bmi-25)/5)*25; cls='warn'; label='Overweight'; }
+  else{ pct=Math.min(100,75+((bmi-30)/10)*25); cls='danger'; label='Obese'; }
+  needle.style.left = pct+'%';
+  status.className='vital-status '+cls;
+  status.textContent = label;
+}
+function renderWeight(){
+  const log = state.weightLog;
+  const list = document.getElementById('weight-log-list');
+  const empty = document.getElementById('weight-empty');
+  list.innerHTML='';
+  if(!log.length){ empty.style.display='block'; }
+  else{
+    empty.style.display='none';
+    log.forEach((e,i)=>{
+      const d = document.createElement('div');
+      d.className = 'weight-entry';
+      d.innerHTML = `<div><span class="weight-val">${e.display} ${e.unit}</span><div class="weight-date">${e.date}</div></div>
+        <button class="weight-del" onclick="deleteWeight(${i})">✕</button>`;
+      list.appendChild(d);
+    });
+    drawWeightChart();
+  }
+  // Update home stat
+  if(log.length) document.getElementById('home-weight').textContent = log[0].kg;
+}
+function drawWeightChart(){
+  const canvas = document.getElementById('weight-chart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const data = state.weightLog.slice(0,10).reverse();
+  if(data.length<2){ ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+  canvas.width=canvas.offsetWidth||300; canvas.height=80;
+  const W=canvas.width, H=canvas.height, pad=10;
+  const vals=data.map(d=>d.kg);
+  const min=Math.min(...vals)-2, max=Math.max(...vals)+2;
+  const x=i=>(pad+(i/(data.length-1))*(W-pad*2));
+  const y=v=>(H-pad-((v-min)/(max-min))*(H-pad*2));
+  ctx.clearRect(0,0,W,H);
+  // Fill
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(26,122,74,0.3)'); grad.addColorStop(1,'rgba(26,122,74,0)');
+  ctx.beginPath(); ctx.moveTo(x(0),y(vals[0]));
+  vals.forEach((v,i)=>{if(i>0)ctx.lineTo(x(i),y(v));});
+  ctx.lineTo(x(vals.length-1),H); ctx.lineTo(x(0),H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  // Line
+  ctx.beginPath(); ctx.moveTo(x(0),y(vals[0]));
+  vals.forEach((v,i)=>{if(i>0)ctx.lineTo(x(i),y(v));});
+  ctx.strokeStyle='#1a7a4a'; ctx.lineWidth=2.5; ctx.stroke();
+  // Dots
+  vals.forEach((v,i)=>{
+    ctx.beginPath(); ctx.arc(x(i),y(v),4,0,Math.PI*2);
+    ctx.fillStyle='#1a7a4a'; ctx.fill();
+    ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(x(i),y(v),2,0,Math.PI*2); ctx.fill();
+  });
+}
+
+// ===== SCHEDULE =====
+function addScheduleItem(){
+  const name = document.getElementById('sch-name').value.trim();
+  const time = document.getElementById('sch-time').value;
+  const cat = document.getElementById('sch-cat').value;
+  if(!name){ showToast('⚠️ Enter a task name!'); return; }
+  state.schedule.push({ id:Date.now(), name, time, cat, done:false });
+  saveState(); renderSchedule();
+  document.getElementById('sch-name').value='';
+  document.getElementById('sch-time').value='';
+  showToast('✅ Task added!');
+}
+function toggleSchedule(id){
+  const item = state.schedule.find(s=>s.id===id);
+  if(item){ item.done=!item.done; saveState(); renderSchedule(); renderHome(); }
+}
+function deleteScheduleItem(id){
+  state.schedule = state.schedule.filter(s=>s.id!==id);
+  saveState(); renderSchedule(); renderHome();
+}
+function renderSchedule(){
+  const list = document.getElementById('schedule-list');
+  const empty = document.getElementById('schedule-empty');
+  const sorted = [...state.schedule].sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+  list.innerHTML='';
+  if(!sorted.length){ empty.style.display='block'; }
+  else{
+    empty.style.display='none';
+    sorted.forEach(item=>{
+      const d = document.createElement('div');
+      d.className='schedule-item'+(item.done?' done':'');
+      d.innerHTML = `
+        <div class="sch-check" onclick="toggleSchedule(${item.id})">${item.done?'✓':''}</div>
+        <div class="sch-info">
+          <div class="sch-name">${item.cat} ${item.name}</div>
+          <div class="sch-time">${item.time||'Anytime'}</div>
+        </div>
+        <button onclick="deleteScheduleItem(${item.id})" style="background:none;border:none;font-size:16px;color:var(--text-muted);cursor:pointer;">✕</button>`;
+      list.appendChild(d);
+    });
+  }
+  const done = state.schedule.filter(s=>s.done).length;
+  const total = state.schedule.length;
+  document.getElementById('sch-progress-text').textContent = done+' / '+total+' done';
+  const pct = total ? done/total : 0;
+  const circ = 150.8;
+  document.getElementById('sch-ring').style.strokeDashoffset = circ-(pct*circ);
+  document.getElementById('sch-ring-pct').textContent = Math.round(pct*100)+'%';
+}
+
+// ===== VITALS =====
+function logVitals(){
+  const heart = document.getElementById('v-heart').value;
+  const sys = document.getElementById('v-sys').value;
+  const dia = document.getElementById('v-dia').value;
+  const temp = document.getElementById('v-temp').value;
+  const spo2 = document.getElementById('v-spo2').value;
+  const sleep = document.getElementById('v-sleep').value;
+  if(heart) state.vitals.heart = heart;
+  if(sys) state.vitals.sys = sys;
+  if(dia) state.vitals.dia = dia;
+  if(temp) state.vitals.temp = temp;
+  if(spo2) state.vitals.spo2 = spo2;
+  if(sleep) state.vitals.sleep = sleep;
+  state.vitals.date = new Date().toDateString();
+  saveState(); renderVitals(); renderHome();
+  showToast('✅ Vitals saved!');
+  ['v-heart','v-sys','v-dia','v-temp','v-spo2','v-sleep'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value='';
+  });
+}
+function logSteps(){
+  const v = document.getElementById('v-steps').value;
+  if(v){ state.vitals.steps=v; saveState(); renderVitals(); showToast('🚶 Steps logged: '+v); document.getElementById('v-steps').value=''; }
+}
+function setMood(emoji, label){
+  state.vitals.mood = emoji+' '+label; saveState();
+  document.getElementById('mood-text').textContent = 'Mood: '+emoji+' '+label;
+  showToast('😊 Mood logged: '+label);
+}
+function getHeartStatus(h){ if(!h||isNaN(h)) return ['--','normal']; h=parseInt(h); if(h<60) return ['Low','warn']; if(h<=100) return ['Normal','normal']; return ['High','danger']; }
+function getBPStatus(s,d){ if(!s||!d) return ['--','normal']; s=parseInt(s); d=parseInt(d); if(s<90) return ['Low','warn']; if(s<=120&&d<=80) return ['Normal','normal']; if(s<=130&&d<=80) return ['Elevated','warn']; if(s<=140||d<=90) return ['High','warn']; return ['Very High','danger']; }
+function getTempStatus(t){ if(!t||isNaN(t)) return ['--','normal']; t=parseFloat(t); if(t<36) return ['Low','warn']; if(t<=37.5) return ['Normal','normal']; if(t<=38.5) return ['Mild Fever','warn']; return ['Fever','danger']; }
+function getSpo2Status(s){ if(!s||isNaN(s)) return ['--','normal']; s=parseInt(s); if(s>=97) return ['Excellent','normal']; if(s>=95) return ['Normal','normal']; if(s>=90) return ['Low','warn']; return ['Critical','danger']; }
+function getSleepStatus(s){ if(!s||isNaN(s)) return ['--','normal']; s=parseFloat(s); if(s<6) return ['Too Little','warn']; if(s<=9) return ['Good','normal']; return ['Too Much','warn']; }
+function renderVitals(){
+  const v = state.vitals;
+  const [hSt,hCl] = getHeartStatus(v.heart);
+  const [bpSt,bpCl] = getBPStatus(v.sys,v.dia);
+  const [tSt,tCl] = getTempStatus(v.temp);
+  const [sSt,sCl] = getSpo2Status(v.spo2);
+  const [slSt,slCl] = getSleepStatus(v.sleep);
+  const vData = [
+    { icon:'❤️', name:'Heart Rate', value: v.heart?(v.heart+' bpm'):'--', status:hSt, cls:hCl },
+    { icon:'🩸', name:'Blood Pressure', value: (v.sys&&v.dia)?(v.sys+'/'+v.dia):'--', status:bpSt, cls:bpCl },
+    { icon:'🌡️', name:'Temperature', value: v.temp?(v.temp+'°C'):'--', status:tSt, cls:tCl },
+    { icon:'💨', name:'SpO2', value: v.spo2?(v.spo2+'%'):'--', status:sSt, cls:sCl },
+    { icon:'😴', name:'Sleep', value: v.sleep?(v.sleep+'h'):'--', status:slSt, cls:slCl },
+    { icon:'🚶', name:'Steps', value: v.steps?parseInt(v.steps).toLocaleString():'--', status:v.steps&&v.steps>=8000?'Goal Met':'--', cls:v.steps&&v.steps>=8000?'normal':'warn' },
+  ];
+  const grid = document.getElementById('vitals-grid');
+  grid.innerHTML = vData.map(d=>`
+    <div class="vital-card">
+      <div class="vital-icon">${d.icon}</div>
+      <div class="vital-name">${d.name}</div>
+      <div class="vital-value">${d.value}</div>
+      <span class="vital-status ${d.cls}">${d.status}</span>
+    </div>`).join('');
+  // Update home stats
+  document.getElementById('home-heart').textContent = v.heart||'--';
+  document.getElementById('home-bp').textContent = (v.sys&&v.dia)?(v.sys+'/'+v.dia):'--';
+  if(v.mood) document.getElementById('mood-text').textContent = 'Mood: '+v.mood;
+  if(v.steps) document.getElementById('steps-display').textContent = '🚶 '+parseInt(v.steps).toLocaleString()+' steps today'+(parseInt(v.steps)>=8000?' · 🎯 Goal met!':'');
+}
+
+// ===== PROFILE =====
+function saveProfile(){
+  const p = {
+    name: document.getElementById('p-name').value.trim(),
+    age: document.getElementById('p-age').value,
+    gender: document.getElementById('p-gender').value,
+    height: document.getElementById('p-height').value,
+    blood: document.getElementById('p-blood').value,
+  };
+  state.profile = p; saveState(); renderProfile(); renderHome();
+  showToast('✅ Profile saved!');
+}
+function renderProfile(){
+  const p = state.profile;
+  if(p.name){ document.getElementById('profile-name-display').textContent = p.name; document.getElementById('profile-avatar').textContent = p.name.charAt(0).toUpperCase(); }
+  const sub = [p.age?(p.age+' yrs'):'', p.gender, p.blood].filter(Boolean).join(' · ');
+  document.getElementById('profile-sub-display').textContent = sub||'Set up your profile';
+  if(p.name) document.getElementById('p-name').value = p.name;
+  if(p.age) document.getElementById('p-age').value = p.age;
+  if(p.gender) document.getElementById('p-gender').value = p.gender;
+  if(p.height) document.getElementById('p-height').value = p.height;
+  if(p.blood) document.getElementById('p-blood').value = p.blood;
+  const summary = document.getElementById('health-summary');
+  const latest = state.weightLog[0];
+  const items = [
+    ['⚖️','Latest Weight', latest?(latest.display+' '+latest.unit):'Not logged'],
+    ['❤️','Heart Rate', state.vitals.heart?(state.vitals.heart+' bpm'):'Not logged'],
+    ['💧','Water Today', state.water.glasses+' glasses'],
+    ['🔥','Streak', state.streak.count+' days'],
+    ['📋','Tasks Completed', state.schedule.filter(s=>s.done).length+' / '+state.schedule.length],
+  ];
+  summary.innerHTML = items.map(([icon,label,val])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--green-pale);">
+      <span style="font-size:13px;color:var(--text-muted);font-weight:600;">${icon} ${label}</span>
+      <span style="font-size:13px;font-weight:800;color:var(--text);">${val}</span>
+    </div>`).join('');
+}
+
+// ===== HOME =====
+const insights = [
+  "Drink water first thing in the morning to jumpstart your metabolism.",
+  "Aim for 7–9 hours of sleep each night for optimal health.",
+  "Walking 8,000+ steps a day reduces risk of chronic diseases by 50%.",
+  "Eating slowly helps you feel full sooner and aids digestion.",
+  "Deep breathing for 5 minutes can lower blood pressure and reduce stress.",
+  "A healthy BMI range is 18.5–24.9. Track yours in the Weight section!",
+  "Your heart beats ~100,000 times a day — keep it healthy!",
+  "Limit screen time before bed for better quality sleep.",
+  "Consistency beats perfection — small daily habits build great health.",
+  "Track your blood pressure regularly — high BP often has no symptoms.",
+];
+function getInsight(){ return insights[new Date().getDate() % insights.length]; }
+function getGreeting(){ const h=new Date().getHours(); if(h<12) return 'morning'; if(h<17) return 'afternoon'; return 'evening'; }
+function renderHome(){
+  document.getElementById('greeting-time').textContent = getGreeting();
+  const name = state.profile.name || 'Friend';
+  document.getElementById('user-greeting-name').textContent = name;
+  document.getElementById('insight-text').textContent = getInsight();
+  document.getElementById('streak-count').textContent = state.streak.count;
+  // Water
+  const g=state.water.glasses, goal=state.water.goal;
+  document.getElementById('home-water').textContent = g;
+  document.getElementById('home-water-l').textContent = g;
+  document.getElementById('home-water-goal').textContent = goal;
+  document.getElementById('home-water-bar').style.width = Math.min((g/goal)*100,100)+'%';
+  // Weight
+  const latest = state.weightLog[0];
+  document.getElementById('home-weight').textContent = latest?latest.kg:'--';
+  // Vitals
+  document.getElementById('home-heart').textContent = state.vitals.heart||'--';
+  document.getElementById('home-bp').textContent = (state.vitals.sys&&state.vitals.dia)?(state.vitals.sys+'/'+state.vitals.dia):'--';
+  // Schedule preview
+  const prev = document.getElementById('home-schedule-preview');
+  const upcoming = state.schedule.filter(s=>!s.done).slice(0,3);
+  if(!upcoming.length){
+    prev.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:12px 0;">All tasks done! 🎉</div>';
+  } else {
+    prev.innerHTML = upcoming.map(item=>`
+      <div class="schedule-item" onclick="toggleSchedule(${item.id})" style="margin-bottom:8px;">
+        <div class="sch-check"></div>
+        <div class="sch-info"><div class="sch-name">${item.cat} ${item.name}</div><div class="sch-time">${item.time||'Anytime'}</div></div>
+        <div class="sch-tag">${item.cat}</div>
+      </div>`).join('');
+  }
+}
+
+// ===== RESET / EXPORT =====
+function resetDay(){ if(confirm('Reset today\'s water, vitals, and task completion?')){ 
+  state.water.glasses=0; state.water.date='';
+  state.vitals={...state.vitals,heart:'',sys:'',dia:'',temp:'',spo2:'',sleep:'',steps:'',mood:'',date:''};
+  state.schedule.forEach(s=>s.done=false);
+  saveState(); refreshPage(currentPage); showToast('🔄 Day reset!'); 
+}}
+function exportData(){
+  const data = JSON.stringify(state, null, 2);
+  try{ navigator.clipboard.writeText(data).then(()=>showToast('📋 Data copied to clipboard!')); }catch(e){ showToast('⚠️ Copy manually from console'); console.log(data); }
+}
+function clearAllData(){ 
+  localStorage.removeItem(STORAGE_KEY);
+  state = { profile:{name:'',age:'',gender:'',height:'',blood:''}, water:{glasses:0,goal:8,date:''}, weightLog:[], schedule:[], vitals:{heart:'',sys:'',dia:'',temp:'',spo2:'',sleep:'',steps:'',mood:'',date:''}, streak:{count:0,lastDate:''} };
+  saveState(); refreshPage(currentPage); showToast('🗑️ All data cleared!');
+}
+function openProfileModal(){ switchPage('profile'); }
+
+// ===== TOPBAR DATE =====
+function updateTopbarDate(){
+  const now = new Date();
+  const opts = { weekday:'short', month:'short', day:'numeric' };
+  document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-US',opts);
+}
+
+// ===== INIT =====
+window.addEventListener('load', ()=>{
+  loadState();
+  checkDayReset();
+  updateTopbarDate();
+  setTimeout(()=>{
+    document.getElementById('splash').style.opacity='0';
+    setTimeout(()=>{ 
+      document.getElementById('splash').style.display='none';
+      document.getElementById('app').style.display='flex';
+      renderHome();
+      renderWeight();
+      renderVitals();
+    },600);
+  },1800);
+});
+
+
+
+
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-BG5jnFXEmRSzT8-bdLZs2L83Xo3WCFI",
+    authDomain: "go-heal-896c7.firebaseapp.com",
+    databaseURL: "https://go-heal-896c7-default-rtdb.firebaseio.com",
+    projectId: "go-heal-896c7",
+    storageBucket: "go-heal-896c7.firebasestorage.app",
+    messagingSenderId: "396181307278",
+    appId: "1:396181307278:web:70bc3266058206d905eedf",
+    measurementId: "G-CS3ELYP7J4"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+
+</script>
+</body>
+</html>
