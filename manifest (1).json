@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "auto",
+  "display": "standalone",
+  "name": "Go Heal",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "healGo Heal",
+  "start_url": "/https://sanjith460.github.io/go-heal/",
+  "theme_color": "#1a7a4a",
+  "description": "This app helps users monitor their health daily and track important health activities."
+}
